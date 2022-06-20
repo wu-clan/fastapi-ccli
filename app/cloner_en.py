@@ -17,12 +17,13 @@ def orm_callback(orm: str) -> str:
     :return:
     """
     if orm:
-        if orm == 's':
+        if orm == 'sqlalchemy' or orm == 's':
             use_orm = typer.style('sqlalchemy', fg='green', bold=True)
-        elif orm == 't':
+        elif orm == 'tortoise-orm' or orm == 't':
             use_orm = typer.style('tortoise', fg='green', bold=True)
         else:
-            raise typer.BadParameter("Enter unknown parameters, only allowed 's' or ‘t'")
+            raise typer.BadParameter(
+                "Enter unknown parameters, only allowed 'sqlalchemy' / 's' or 'tortoise-orm' / 't'")
     else:
         use_orm = typer.style('sqlalchemy', fg='green', bold=True)
     return use_orm
@@ -30,7 +31,7 @@ def orm_callback(orm: str) -> str:
 
 def project_path_callback(project_path: str) -> str:
     """
-    Custom project name
+    custom project path
 
     :param project_path:
     :return:
@@ -88,25 +89,28 @@ def clone(
             "--orm",
             "-o",
             callback=orm_callback,
-            help="Which orm to use, if 's' is used, sqlalchemy will be used, 's' is used by default, "
-                 "'s' or 't' is supported, explanation, 's': sqlalchemy；'t': tortoise-orm"
+            help="""
+            Which orm to use, sqlalchemy is used by default, sqlalchemy or tortoise-orm is supported, description, 
+            shorthand can be used, s == sqlalchemy, t == tortoise-orm
+            """
         ),
         project_path: Optional[str] = typer.Option(
             None,
             "--project_path",
             "-pp",
             callback=project_path_callback,
-            help="The cloned project path, '..fastapi_project' is used by default, supports absolute path"
-                 " or relative path, for example, absolute path: 'D:\\git_project\\ttt\\ttt\\req'; "
-                 "relative path: '../fastapi_project'"
+            help="""
+            The cloned project path, using ../fastapi_project by default, supports absolute path or relative path, 
+            for example, Absolute path: D:\\fastapi project, relative path: ../fastapi project
+            """
         ),
 ):
     """
     FastAPI project cloner
     """
     path_resolve = project_path if not project_path.startswith("..") else os.path.abspath(project_path)
-    path = typer.style(path_resolve if not path_resolve.startswith(".") else os.path.abspath(project_path),
-                       fg="green", bold=True)
+    path = path_resolve if not path_resolve.startswith(".") else os.path.abspath(project_path)
+    path_style = typer.style(path, fg='green', bold=True)
     project_name = re.split(r'/|\'|\\|\\\\', project_path)[-1]
     if 'sqlalchemy' in orm:
         cdn = is_cdn()
@@ -122,31 +126,33 @@ def clone(
         typer.echo('Use async: ' + async_app)
         typer.echo('Use generics crud: ' + generic_crud)
         if casbin:
-            typer.echo('使用 rbac: ' + casbin)
+            typer.echo('Use rbac: ' + casbin)
         try:
             if 'True' in cdn:
                 src = __sqlalchemy_app_src(
-                    host='https://github.com/wu-clan/fastapi_sqlalchemy_mysql',
+                    host='https://github.com/wu-clan/fastapi_sqlalchemy_mysql.git',
                     async_app=async_app,
                     generic_crud=generic_crud,
                     casbin=casbin
                 )
             else:
                 src = __sqlalchemy_app_src(
-                    host='https://gitee.com/wu_cl/fastapi_sqlalchemy_mysql',
+                    host='https://gitee.com/wu_cl/fastapi_sqlalchemy_mysql.git',
                     async_app=async_app,
                     generic_crud=generic_crud,
                     casbin=casbin
                 )
             # typer.echo(src)
             # typer.launch(src)
-            os.system(f'git clone {src} {project_name}')
+            out = os.system(f'git clone {src} {path}')
+            if out != 0:
+                raise RuntimeError(out)
         except Exception as e:
             typer.echo(f'Clone project failed ❌: {e}')
             raise typer.Exit(code=1)
         else:
             typer.echo('The project was cloned successfully ✅')
-            typer.echo(f'Please go to the directory {path} to view')
+            typer.echo(f'Please go to the directory {path_style} to view')
             raise typer.Abort()
     else:
         cdn = is_cdn()
@@ -156,18 +162,20 @@ def clone(
         typer.echo('Use cdn: ' + cdn)
         try:
             if 'True' in cdn:
-                src = 'https://github.com/wu-clan/fastapi_tortoise_mysql'
+                src = 'https://github.com/wu-clan/fastapi_tortoise_mysql.git'
             else:
-                src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql'
+                src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql.git'
             # typer.echo(src)
             # typer.launch(src)
-            os.system(f'git clone {src} {project_name}')
+            out = os.system(f'git clone {src} {path}')
+            if out != 0:
+                raise RuntimeError(out)
         except Exception as e:
             typer.echo(f'Clone project failed ❌: {e}')
             raise typer.Exit(code=1)
         else:
             typer.echo('The project was cloned successfully ✅')
-            typer.echo(f'Please go to the directory {path} to view')
+            typer.echo(f'Please go to the directory {path_style} to view')
             raise typer.Abort()
 
 
@@ -182,31 +190,18 @@ def __sqlalchemy_app_src(*, host: str, async_app: str, generic_crud: str, casbin
     :return:
     """
     if 'True' in async_app:
-        tree = ['', '/tree/async-CRUDBase', '/tree/async-Plus']
-        if 'True' in generic_crud:
-            generic = [tree[1], tree[2]]
-            if 'True' in casbin:
-                rbac = generic[1]
-                end = host + rbac
-            else:
-                rbac = generic[0]
-                end = host + rbac
-        else:
-            generic = tree[0]
-            end = host + generic
-        clone_src = end
+        tree = ['master', 'async-CRUDBase', 'async-Plus']
     else:
-        tree = ['/tree/sync', '/tree/sync-CRUDBase', '/tree/sync-Plus']
-        if 'True' in generic_crud:
-            generic = [tree[1], tree[2]]
-            if 'True' in casbin:
-                rbac = generic[1]
-                end = host + rbac
-            else:
-                rbac = generic[0]
-                end = host + rbac
+        tree = ['sync', 'sync-CRUDBase', 'sync-Plus']
+    if 'True' in generic_crud:
+        generic = [tree[1], tree[2]]
+        if 'True' in casbin:
+            rbac = generic[1]
+            clone_branch = f'{rbac} {host}'
         else:
-            generic = tree[0]
-            end = host + generic
-        clone_src = end
-    return clone_src
+            no_rbac = generic[0]
+            clone_branch = f'{no_rbac} {host}'
+    else:
+        no_generic = tree[0]
+        clone_branch = f'{no_generic} {host}'
+    return clone_branch
