@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import re
 from typing import Optional
 
 import typer
@@ -8,7 +9,7 @@ import typer
 app_en = typer.Typer()
 
 
-def orm_callback(orm: str):
+def orm_callback(orm: str) -> str:
     """
     Which to use orm
 
@@ -16,19 +17,36 @@ def orm_callback(orm: str):
     :return:
     """
     if orm:
-        if orm == '--s' or orm == '-s':
-            use_orm = typer.style('sqlalchemy', fg='blue', bold=True)
-        elif orm == '--t' or orm == '-t':
-            use_orm = typer.style('tortoise', fg='blue', bold=True)
+        if orm == 's':
+            use_orm = typer.style('sqlalchemy', fg='green', bold=True)
+        elif orm == 't':
+            use_orm = typer.style('tortoise', fg='green', bold=True)
         else:
-            raise typer.BadParameter("Unknown parameter entered, only allowed '--s' / '-s' or '--t' / '-t'")
+            raise typer.BadParameter("Enter unknown parameters, only allowed 's' or ‘t'")
     else:
-        use_orm = typer.style('sqlalchemy', fg='blue', bold=True)
+        use_orm = typer.style('sqlalchemy', fg='green', bold=True)
     return use_orm
 
 
-def is_cdn():
-    cdn = typer.confirm('Do you want to use cdn?', default=True)
+def project_path_callback(project_path: str) -> str:
+    """
+    Custom project name
+
+    :param project_path:
+    :return:
+    """
+    if project_path:
+        if not isinstance(project_path, str):
+            raise typer.BadParameter("Wrong parameter input, Only strings are allowed'")
+        else:
+            use_project_name = project_path
+    else:
+        use_project_name = '../fastapi_project'
+    return use_project_name
+
+
+def is_cdn() -> str:
+    cdn = typer.confirm('Do you want to use cdn?', default=False)
     if cdn:
         ending = typer.style('True', fg='green', bold=True)
     else:
@@ -36,7 +54,7 @@ def is_cdn():
     return ending
 
 
-def is_async_app():
+def is_async_app() -> str:
     async_app = typer.confirm('Do you want to use async?', default=True)
     if async_app:
         ending = typer.style('True', fg='green', bold=True)
@@ -45,7 +63,7 @@ def is_async_app():
     return ending
 
 
-def is_generic_crud():
+def is_generic_crud() -> str:
     generic_crud = typer.confirm('Do you want to use generic crud?', default=True)
     if generic_crud:
         ending = typer.style('True', fg='green', bold=True)
@@ -54,7 +72,7 @@ def is_generic_crud():
     return ending
 
 
-def is_casbin():
+def is_casbin() -> str:
     casbin = typer.confirm('Do you want to use rbac?', default=True)
     if casbin:
         ending = typer.style('True', fg='green', bold=True)
@@ -70,15 +88,26 @@ def clone(
             "--orm",
             "-o",
             callback=orm_callback,
-            help="""
-            Which to use orm, if using --s, will use sqlalchemy, the default is to use --s,
-            support --s or --t, --s: sqlalchemy; --t: tortoise-orm.
-            """
-        )
+            help="Which orm to use, if 's' is used, sqlalchemy will be used, 's' is used by default, "
+                 "'s' or 't' is supported, explanation, 's': sqlalchemy；'t': tortoise-orm"
+        ),
+        project_path: Optional[str] = typer.Option(
+            None,
+            "--project_path",
+            "-pp",
+            callback=project_path_callback,
+            help="The cloned project path, '..fastapi_project' is used by default, supports absolute path"
+                 " or relative path, for example, absolute path: 'D:\\git_project\\ttt\\ttt\\req'; "
+                 "relative path: '../fastapi_project'"
+        ),
 ):
     """
     FastAPI project cloner
     """
+    path_resolve = project_path if not project_path.startswith("..") else os.path.abspath(project_path)
+    path = typer.style(path_resolve if not path_resolve.startswith(".") else os.path.abspath(project_path),
+                       fg="green", bold=True)
+    project_name = re.split(r'/|\'|\\|\\\\', project_path)[-1]
     if 'sqlalchemy' in orm:
         cdn = is_cdn()
         async_app = is_async_app()
@@ -86,13 +115,14 @@ def clone(
         casbin = None
         if 'True' in generic_crud:
             casbin = is_casbin()
+        typer.echo('Start cloning project 🚀')
+        typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
         typer.echo('Select ORM: ' + orm)
         typer.echo('Use cdn: ' + cdn)
         typer.echo('Use async: ' + async_app)
         typer.echo('Use generics crud: ' + generic_crud)
         if casbin:
-            typer.echo('Use rbac: ' + casbin)
-        typer.echo('Start cloning project 🚀')
+            typer.echo('使用 rbac: ' + casbin)
         try:
             if 'True' in cdn:
                 src = __sqlalchemy_app_src(
@@ -108,35 +138,40 @@ def clone(
                     generic_crud=generic_crud,
                     casbin=casbin
                 )
+            # typer.echo(src)
             # typer.launch(src)
-            os.system(f'git clone {src} ../fastapi_project')
+            os.system(f'git clone {src} {project_name}')
         except Exception as e:
-            typer.echo(f'Failed to Clone project ❌: {e}')
+            typer.echo(f'Clone project failed ❌: {e}')
             raise typer.Exit(code=1)
         else:
-            typer.echo('Clone project succeeded ✅')
+            typer.echo('The project was cloned successfully ✅')
+            typer.echo(f'Please go to the directory {path} to view')
             raise typer.Abort()
     else:
         cdn = is_cdn()
+        typer.echo('Start cloning project 🚀')
+        typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
         typer.echo('Select ORM: ' + orm)
         typer.echo('Use cdn: ' + cdn)
-        typer.echo('Start cloning the project 🚀')
         try:
             if 'True' in cdn:
                 src = 'https://github.com/wu-clan/fastapi_tortoise_mysql'
             else:
                 src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql'
+            # typer.echo(src)
             # typer.launch(src)
-            os.system(f'git clone {src} ../fastapi_project')
+            os.system(f'git clone {src} {project_name}')
         except Exception as e:
-            typer.echo(f'Failed to Clone project ❌: {e}')
+            typer.echo(f'Clone project failed ❌: {e}')
             raise typer.Exit(code=1)
         else:
-            typer.echo('Clone project succeeded ✅')
+            typer.echo('The project was cloned successfully ✅')
+            typer.echo(f'Please go to the directory {path} to view')
             raise typer.Abort()
 
 
-def __sqlalchemy_app_src(*, host: str, async_app: str, generic_crud: str, casbin: str):
+def __sqlalchemy_app_src(*, host: str, async_app: str, generic_crud: str, casbin: str) -> str:
     """
     sqlalchemy app download address resolution.
 
