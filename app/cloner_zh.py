@@ -2,9 +2,16 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import time
 from typing import Optional
 
 import typer
+
+from app import GREEN, RED
+from app.utils.get_country import get_current_country
+from app.utils.get_ip import get_net_ip
+from app.utils.get_path import get_project_path
+from app.utils.get_src import get_sqlalchemy_app_src
 
 app_zh = typer.Typer()
 
@@ -20,7 +27,7 @@ def orm_callback(orm: str) -> str:
         if orm == 'sqlalchemy' or orm == 's':
             use_orm = typer.style('sqlalchemy', fg='green', bold=True)
         elif orm == 'tortoise-orm' or orm == 't':
-            use_orm = typer.style('tortoise', fg='green', bold=True)
+            use_orm = typer.style('tortoise-orm', fg='green', bold=True)
         else:
             raise typer.BadParameter("输入未知参数，只允许 'sqlalchemy' / 's' or 'tortoise-orm' / 't'")
     else:
@@ -45,39 +52,59 @@ def project_path_callback(project_path: str) -> str:
     return use_project_name
 
 
-def is_cdn() -> str:
-    cdn = typer.confirm('你想使用 cdn 吗?', default=False)
-    if cdn:
-        ending = typer.style('True', fg='green', bold=True)
-    else:
-        ending = typer.style('False', fg='red', bold=True)
+def is_dns() -> str:
+    dns = typer.confirm('你想使用 dns 吗?', default=False)
+    with typer.progressbar(range(5), label='分析中') as progress:
+        for i in progress:
+            ip = get_net_ip()
+            if len(ip) > 0:
+                rp = get_current_country(ip)
+                if 'CN' in rp:
+                    if dns:
+                        ending = GREEN
+                    else:
+                        ending = RED
+                else:
+                    if dns:
+                        ending = RED
+                    else:
+                        ending = GREEN
+                # 视觉效果
+                time.sleep(0.3)
+                progress.update(5)
+                break
+            else:
+                time.sleep(0.3)
+                progress.update(i)
+            # 如果没有 ip，那么它使用 GitHub，这是临时解决方案.
+            ending = RED
     return ending
 
 
 def is_async_app() -> str:
     async_app = typer.confirm('你想使用异步吗?', default=True)
     if async_app:
-        ending = typer.style('True', fg='green', bold=True)
+        ending = GREEN
     else:
-        ending = typer.style('False', fg='red', bold=True)
+        ending = RED
     return ending
 
 
 def is_generic_crud() -> str:
     generic_crud = typer.confirm('你想使用泛型 crud 吗?', default=True)
     if generic_crud:
-        ending = typer.style('True', fg='green', bold=True)
+        ending = GREEN
     else:
-        ending = typer.style('False', fg='red', bold=True)
+        ending = RED
     return ending
 
 
 def is_casbin() -> str:
     casbin = typer.confirm('你想使用 rbac 吗?', default=True)
     if casbin:
-        ending = typer.style('True', fg='green', bold=True)
+        ending = GREEN
     else:
-        ending = typer.style('False', fg='red', bold=True)
+        ending = RED
     return ending
 
 
@@ -107,100 +134,73 @@ def clone(
     """
     FastAPI 项目克隆器
     """
-    path_resolve = project_path if not project_path.startswith("..") else os.path.abspath(project_path)
-    path = path_resolve if not path_resolve.startswith(".") else os.path.abspath(project_path)
+    path = get_project_path(project_path)
     path_style = typer.style(path, fg='green', bold=True)
-    project_name = re.split(r'/|\'|\\|\\\\', project_path)[-1]
+    project_name = typer.style(re.split(r'/|\'|\\|\\\\', project_path)[-1], fg='blue', bold=True)
     if 'sqlalchemy' in orm:
-        cdn = is_cdn()
+        dns = is_dns()
         async_app = is_async_app()
         generic_crud = is_generic_crud()
         casbin = None
         if 'True' in generic_crud:
             casbin = is_casbin()
-        typer.echo('开始克隆项目 🚀')
-        typer.echo('项目名称：' + typer.style(project_name, fg='blue', bold=True))
+        typer.echo('项目名称：' + project_name)
         typer.echo('选择 ORM：' + orm)
-        typer.echo('使用 cdn：' + cdn)
+        typer.echo('使用 dns：' + dns)
         typer.echo('使用异步：' + async_app)
         typer.echo('使用泛型 crud：' + generic_crud)
         if casbin:
             typer.echo('使用 rbac：' + casbin)
-        try:
-            if 'True' in cdn:
-                src = __sqlalchemy_app_src(
-                    host='https://github.com/wu-clan/fastapi_sqlalchemy_mysql.git',
-                    async_app=async_app,
-                    generic_crud=generic_crud,
-                    casbin=casbin
-                )
-            else:
-                src = __sqlalchemy_app_src(
-                    host='https://gitee.com/wu_cl/fastapi_sqlalchemy_mysql.git',
-                    async_app=async_app,
-                    generic_crud=generic_crud,
-                    casbin=casbin
-                )
-            # typer.echo(src)
-            # typer.launch(src)
-            out = os.system(f'git clone {src} {path}')
-            if out != 0:
-                raise RuntimeError(out)
-        except Exception as e:
-            typer.echo(f'克隆项目失败 ❌：{e}')
-            raise typer.Exit(code=1)
+        if 'True' in dns:
+            src = get_sqlalchemy_app_src(
+                src='https://github.com/wu-clan/fastapi_sqlalchemy_mysql.git',
+                async_app=async_app,
+                generic_crud=generic_crud,
+                casbin=casbin
+            )
         else:
-            typer.echo('项目克隆成功 ✅')
-            typer.echo(f'请到目录 {path_style} 查看')
-            raise typer.Abort()
+            src = get_sqlalchemy_app_src(
+                src='https://gitee.com/wu_cl/fastapi_sqlalchemy_mysql.git',
+                async_app=async_app,
+                generic_crud=generic_crud,
+                casbin=casbin
+            )
+        __exec_clone(orm, src, path, path_style)
     else:
-        cdn = is_cdn()
-        typer.echo('开始克隆项目 🚀')
-        typer.echo('项目名称：' + typer.style(project_name, fg='blue', bold=True))
+        dns = is_dns()
+        typer.echo('项目名称：' + project_name)
         typer.echo('选择 ORM：' + orm)
-        typer.echo('使用 cdn：' + cdn)
-        try:
-            if 'True' in cdn:
-                src = 'https://github.com/wu-clan/fastapi_tortoise_mysql.git'
-            else:
-                src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql.git'
-            # typer.echo(src)
-            # typer.launch(src)
-            out = os.system(f'git clone {src} {path}')
-            if out != 0:
-                raise RuntimeError(out)
-        except Exception as e:
-            typer.echo(f'克隆项目失败 ❌: {e}')
-            raise typer.Exit(code=1)
+        typer.echo('使用 dns：' + dns)
+        if 'True' in dns:
+            src = 'https://github.com/wu-clan/fastapi_tortoise_mysql.git'
         else:
-            typer.echo('项目克隆成功 ✅')
-            typer.echo(f'请到目录 {path_style} 查看')
-            raise typer.Abort()
+            src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql.git'
+        __exec_clone(orm, src, path, path_style)
 
 
-def __sqlalchemy_app_src(*, host: str, async_app: str, generic_crud: str, casbin: str) -> str:
+def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     """
-    sqlalchemy app下载地址解析.
+    执行克隆
 
-    :param host:
-    :param async_app:
-    :param generic_crud:
-    :param casbin:
+    :param orm:
+    :param src:
+    :param path:
     :return:
     """
-    if 'True' in async_app:
-        tree = ['master', 'async-CRUDBase', 'async-Plus']
-    else:
-        tree = ['sync', 'sync-CRUDBase', 'sync-Plus']
-    if 'True' in generic_crud:
-        generic = [tree[1], tree[2]]
-        if 'True' in casbin:
-            rbac = generic[1]
-            clone_branch = f'{rbac} {host}'
+    try:
+        # typer.launch(src)
+        if 'sqlalchemy' in orm:
+            typer.echo(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
+            out = os.system(f'git clone -b {src} {path}')
         else:
-            no_rbac = generic[0]
-            clone_branch = f'{no_rbac} {host}'
+            typer.echo(f'开始克隆存储库 {src} 🚀')
+            out = os.system(f'git clone {src} {path}')
+        if out != 0:
+            raise RuntimeError(out)
+    except Exception as e:
+        typer.echo(f'克隆项目失败 ❌: {e}')
+        raise typer.Exit(code=1)
     else:
-        no_generic = tree[0]
-        clone_branch = f'{no_generic} {host}'
-    return clone_branch
+        typer.echo('项目克隆成功 ✅')
+        typer.echo(f'请到目录 {path_style} 查看')
+        raise typer.Abort()

@@ -18,6 +18,8 @@ pip install -r requirements.txt
 
 ```shell
 python main.py --help
+# or
+python main.py cloner --help
 ```
 
 ## run
