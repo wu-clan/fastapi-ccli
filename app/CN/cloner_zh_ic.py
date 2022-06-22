@@ -5,6 +5,7 @@ import re
 import time
 from typing import Optional
 
+import questionary
 import typer
 
 from app import GREEN, RED
@@ -13,39 +14,19 @@ from app.utils.get_ip import get_net_ip
 from app.utils.get_path import get_project_path
 from app.utils.get_src import get_sqlalchemy_app_src
 
-app_en = typer.Typer()
-
-
-def orm_callback(orm: str) -> str:
-    """
-    Which to use orm
-
-    :param orm:
-    :return:
-    """
-    if orm:
-        if orm == 'sqlalchemy' or orm == 's':
-            use_orm = typer.style('sqlalchemy', fg='green', bold=True)
-        elif orm == 'tortoise-orm' or orm == 't':
-            use_orm = typer.style('tortoise-orm', fg='green', bold=True)
-        else:
-            raise typer.BadParameter(
-                "Enter unknown parameters, only allowed 'sqlalchemy' / 's' or 'tortoise-orm' / 't'")
-    else:
-        use_orm = typer.style('sqlalchemy', fg='green', bold=True)
-    return use_orm
+app_zh_ic = typer.Typer()
 
 
 def project_path_callback(project_path: str) -> str:
     """
-    custom project path
+    自定义项目路径
 
     :param project_path:
     :return:
     """
     if project_path:
         if not isinstance(project_path, str):
-            raise typer.BadParameter("Wrong parameter input, Only strings are allowed'")
+            raise typer.BadParameter("输入错误参数，只允许字符串'")
         else:
             use_project_name = project_path
     else:
@@ -53,13 +34,28 @@ def project_path_callback(project_path: str) -> str:
     return use_project_name
 
 
-def is_dns() -> str:
-    dns = typer.confirm('Do you want to use dns?', default=False)
-    with typer.progressbar(range(5), label='Analyzing') as progress:
+def orm_style(orm: str) -> str:
+    """
+    orm 风格
+
+    :param orm:
+    :return:
+    """
+    return typer.style(orm, fg='green', bold=True)
+
+
+def is_dns(dns: str) -> str:
+    """
+    是否使用 dns
+
+    :param dns:
+    :return:
+    """
+    with typer.progressbar(range(5), label='  分析中') as progress:
         for i in progress:
             ip = get_net_ip()
             if ip:
-                # Visual effects
+                # 视觉效果
                 time.sleep(0.3)
                 progress.update(5)
                 break
@@ -69,88 +65,103 @@ def is_dns() -> str:
                 continue
         rp = get_current_country(ip)
         if 'CN' in rp:
-            if dns:
+            if 'Yes' in dns:
                 ending = GREEN
             else:
                 ending = RED
         else:
-            if dns:
+            if 'Yes' in dns:
                 ending = RED
             else:
                 ending = GREEN
         return ending
 
 
-def is_async_app() -> str:
-    async_app = typer.confirm('Do you want to use async?', default=True)
-    if async_app:
+def is_async_app(async_app: str) -> str:
+    """
+    是否使用 async
+
+    :param async_app:
+    :return:
+    """
+    if 'Yes' in async_app:
         ending = GREEN
     else:
         ending = RED
     return ending
 
 
-def is_generic_crud() -> str:
-    generic_crud = typer.confirm('Do you want to use generic crud?', default=True)
-    if generic_crud:
+def is_generic_crud(generic_crud: str) -> str:
+    """
+    是否使用泛型
+
+    :param generic_crud:
+    :return:
+    """
+    if 'Yes' in generic_crud:
         ending = GREEN
     else:
         ending = RED
     return ending
 
 
-def is_casbin() -> str:
-    casbin = typer.confirm('Do you want to use rbac?', default=True)
-    if casbin:
+def is_casbin(casbin: str) -> str:
+    """
+    是否使用 rbac
+
+    :param casbin:
+    :return:
+    """
+    if 'Yes' in casbin:
         ending = GREEN
     else:
         ending = RED
     return ending
 
 
-@app_en.command()
+@app_zh_ic.command()
 def clone(
-        orm: Optional[str] = typer.Option(
-            None,
-            "--orm",
-            "-o",
-            callback=orm_callback,
-            help="""
-            Which orm to use, sqlalchemy is used by default, sqlalchemy or tortoise-orm is supported, description, 
-            shorthand can be used, s == sqlalchemy, t == tortoise-orm
-            """
-        ),
         project_path: Optional[str] = typer.Option(
             None,
             "--project_path",
             "-pp",
             callback=project_path_callback,
             help="""
-            The cloned project path, using ../fastapi_project by default, supports absolute path or relative path, 
-            for example, Absolute path: D:\\fastapi project, relative path: ../fastapi project
+            克隆后的项目路径，默认使用 ../fastapi_project，支持绝对路径或相对路径，举例，
+            绝对路径：D:\\fastapi_project，相对路径：../fastapi_project
             """
         ),
 ):
     """
-    FastAPI project cloner
+    FastAPI 项目克隆器
     """
     path = get_project_path(project_path)
     path_style = typer.style(path, fg='green', bold=True)
-    project_name = re.split(r'/|\'|\\|\\\\', project_path)[-1]
-    if 'sqlalchemy' in orm:
-        dns = is_dns()
-        async_app = is_async_app()
-        generic_crud = is_generic_crud()
+    project_name = typer.style(re.split(r'/|\'|\\|\\\\', project_path)[-1], fg='blue', bold=True)
+    result_if = questionary.form(
+        orm=questionary.select('请选择你要使用的 orm', choices=['SQLAlchemy', 'Tortoise-ORM']),
+        dns=questionary.select('你想使用 dns 吗？', choices=['Yes', 'No']),
+    ).unsafe_ask()
+    dns = is_dns(result_if['dns'])
+    orm = orm_style(result_if['orm'])
+    if 'SQLAlchemy' in orm:
+        result = questionary.form(
+            async_app=questionary.select('你想使用异步吗？', choices=['Yes', 'No']),
+            generic_crud=questionary.select('你想使用泛型 crud 吗？', choices=['Yes', 'No']),
+            casbin=questionary.select('你想使用 rbac 吗？', choices=['Yes', 'No']),
+        ).unsafe_ask()
+        async_app = is_async_app(result['async_app'])
+        generic_crud = is_generic_crud(result['generic_crud'])
         casbin = None
         if 'True' in generic_crud:
-            casbin = is_casbin()
-        typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        typer.echo('Select orm: ' + orm)
-        typer.echo('Use dns: ' + dns)
-        typer.echo('Use async: ' + async_app)
-        typer.echo('Use generics crud: ' + generic_crud)
+            casbin = is_casbin(result['casbin'])
+        typer.echo('项目名称：' + project_name)
+        typer.echo('选择 ORM：' + orm)
+        typer.echo('使用 DNS：' + dns)
+        typer.echo('使用异步：' + async_app)
+        typer.echo('使用泛型 CRUD：' + generic_crud)
         if casbin:
-            typer.echo('Use rbac: ' + casbin)
+            typer.echo('使用 RBAC：' + casbin)
         if 'True' in dns:
             src = get_sqlalchemy_app_src(
                 src='https://github.com/wu-clan/fastapi_sqlalchemy_mysql.git',
@@ -167,10 +178,9 @@ def clone(
             )
         __exec_clone(orm, src, path, path_style)
     else:
-        dns = is_dns()
-        typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        typer.echo('Select orm: ' + orm)
-        typer.echo('Use dns: ' + dns)
+        typer.echo('项目名称：' + project_name)
+        typer.echo('选择 ORM：' + orm)
+        typer.echo('使用 DNS：' + dns)
         if 'True' in dns:
             src = 'https://github.com/wu-clan/fastapi_tortoise_mysql.git'
         else:
@@ -180,26 +190,27 @@ def clone(
 
 def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     """
-    Perform clone
+    执行克隆
 
+    :param orm:
     :param src:
     :param path:
     :return:
     """
     try:
         # typer.launch(src)
-        if 'sqlalchemy' in orm:
-            typer.echo(f'Start cloning branch {src.split()[0]} of repository {src.split()[1]} 🚀')
+        if 'SQLAlchemy' in orm:
+            typer.echo(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            typer.echo(f'Start cloning repository {src} 🚀')
+            typer.echo(f'开始克隆存储库 {src} 🚀')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        typer.echo(f'Clone project failed ❌: {e}')
+        typer.echo(f'克隆项目失败 ❌: {e}')
         raise typer.Exit(code=1)
     else:
-        typer.echo('The project was cloned successfully ✅')
-        typer.echo(f'Please go to the directory {path_style} to view')
+        typer.echo('项目克隆成功 ✅')
+        typer.echo(f'请到目录 {path_style} 查看')
         raise typer.Abort()
