@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from json import JSONDecodeError
 
-import requests
+from app.utils import request
 
 
 def get_net_ip() -> str:
@@ -12,17 +12,14 @@ def get_net_ip() -> str:
     :return:
     """
     try:
-        ip = requests.get('https://checkip.amazonaws.com/').text.strip()
+        ip = request.get('https://checkip.amazonaws.com/').text.strip()
         if not ip:
-            ip = requests.get('https://jsonip.com/').json()['ip']
+            ip = request.get('https://jsonip.com/').json()['ip']
     except JSONDecodeError:
-        ip = requests.get('https://api.ipify.org/').text.strip()
+        ip = request.get('https://api.ipify.org/').text.strip()
         if not ip:
-            ip = requests.get('https://ip.42.pl/raw').text.strip()
+            ip = request.get('https://ip.42.pl/raw').text.strip()
     except Exception:
-        ip = ''
+        ip = None
+
     return ip
-
-
-if __name__ == '__main__':
-    print(get_net_ip())

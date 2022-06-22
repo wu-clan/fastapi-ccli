@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import requests
+from app.utils import request
 
 
 def get_current_country(ip: str) -> str:
@@ -11,7 +11,7 @@ def get_current_country(ip: str) -> str:
     :return:
     """
     try:
-        rp = requests.get(f'https://ip.useragentinfo.com/json?ip={ip}').json()['short_name']
+        rp = request.get(f'https://ip.useragentinfo.com/json?ip={ip}').json()['short_name']
     except Exception:
         rp = 'Unknown'
 
