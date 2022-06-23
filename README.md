@@ -2,33 +2,30 @@
 
 > Ps: 浅用 [Typer](https://typer.tiangolo.com/)
 
-## install
+## 使用
+###### P.S.: 未上传到 PyPI
 
+方式一：克隆到本地
 ```shell
-git clone https://gitee.com/wu_cl/fastapi_project_clone_cli
-```
+# install 
+git clone https://gitee.com/wu_cl/fastapi_ccli
 
-## dep
+# dep
+portry install
 
-```shell
-pip install -r requirements.txt
-```
-
-## help
-
-```shell
+# help
 python main.py --help
 # or
 python main.py cloner --help
-```
 
-## run
-
-```shell
+# run
 python main.py
 ```
 
-## Build
+方式二：安装包
+```text
 
-如果你想将它打包, 可以查看此[文档](https://typer.tiangolo.com/tutorial/package/)
+```
 
+## 测试
+根目录下执行 `$ pytest`

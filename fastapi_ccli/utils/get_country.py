@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union
 
-from app.utils import request
+from fastapi_ccli.utils import request
 
 
 def get_current_country(ip: Union[str, None]) -> str:

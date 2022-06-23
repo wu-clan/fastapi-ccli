@@ -8,13 +8,13 @@ from typing import Optional
 import questionary
 import typer
 
-from app import GREEN, RED
-from app.utils.get_country import get_current_country
-from app.utils.get_ip import get_net_ip
-from app.utils.get_path import get_project_path
-from app.utils.get_src import get_sqlalchemy_app_src
+from fastapi_ccli import GREEN, RED, github_fs_src, gitee_fs_src, github_ft_src, gitee_ft_src
+from fastapi_ccli.utils.get_country import get_current_country
+from fastapi_ccli.utils.get_ip import get_net_ip
+from fastapi_ccli.utils.get_path import get_project_path
+from fastapi_ccli.utils.get_src import get_sqlalchemy_app_src
 
-app_zh_ic = typer.Typer()
+app_zh_form = typer.Typer()
 
 
 def project_path_callback(project_path: str) -> str:
@@ -119,7 +119,7 @@ def is_casbin(casbin: str) -> str:
     return ending
 
 
-@app_zh_ic.command()
+@app_zh_form.command()
 def clone(
         project_path: Optional[str] = typer.Option(
             None,
@@ -139,8 +139,8 @@ def clone(
     path_style = typer.style(path, fg='green', bold=True)
     project_name = typer.style(re.split(r'/|\'|\\|\\\\', project_path)[-1], fg='blue', bold=True)
     result_if = questionary.form(
-        orm=questionary.select('请选择你要使用的 orm', choices=['SQLAlchemy', 'Tortoise-ORM']),
-        dns=questionary.select('你想使用 dns 吗？', choices=['Yes', 'No']),
+        orm=questionary.select('请选择你要使用的 orm', choices=['SQLAlchemy', 'Tortoise-ORM'], default='SQLAlchemy'),
+        dns=questionary.select('你想使用 dns 吗？', choices=['Yes', 'No'], default='No'),
     ).unsafe_ask()
     dns = is_dns(result_if['dns'])
     orm = orm_style(result_if['orm'])
@@ -164,14 +164,14 @@ def clone(
             typer.echo('使用 RBAC：' + casbin)
         if 'True' in dns:
             src = get_sqlalchemy_app_src(
-                src='https://github.com/wu-clan/fastapi_sqlalchemy_mysql.git',
+                src=github_fs_src,
                 async_app=async_app,
                 generic_crud=generic_crud,
                 casbin=casbin
             )
         else:
             src = get_sqlalchemy_app_src(
-                src='https://gitee.com/wu_cl/fastapi_sqlalchemy_mysql.git',
+                src=gitee_fs_src,
                 async_app=async_app,
                 generic_crud=generic_crud,
                 casbin=casbin
@@ -182,9 +182,9 @@ def clone(
         typer.echo('选择 ORM：' + orm)
         typer.echo('使用 DNS：' + dns)
         if 'True' in dns:
-            src = 'https://github.com/wu-clan/fastapi_tortoise_mysql.git'
+            src = github_ft_src
         else:
-            src = 'https://gitee.com/wu_cl/fastapi_tortoise_mysql.git'
+            src = gitee_ft_src
         __exec_clone(orm, src, path, path_style)
 
 

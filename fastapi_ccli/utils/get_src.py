@@ -3,7 +3,7 @@
 
 def get_sqlalchemy_app_src(*, src: str, async_app: str, generic_crud: str, casbin: str) -> str:
     """
-    get sqlalchemy app download address resolution.
+    get sqlalchemy fastapi_ccli download address resolution.
 
     :param src:
     :param async_app:

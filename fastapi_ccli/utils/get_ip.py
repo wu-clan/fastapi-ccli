@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from json import JSONDecodeError
 
-from app.utils import request
+from fastapi_ccli.utils import request
 
 
 def get_net_ip() -> str:
