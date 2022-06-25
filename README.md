@@ -1,4 +1,4 @@
-# fastapi 项目克隆命令行工具
+# FastAPI Project Clone CLI
 
 > Ps: 浅用 [Typer](https://typer.tiangolo.com/)
 
@@ -26,8 +26,6 @@ help
 # 进入 fastapi_ccli 目录下
 
 python main.py --help
-# or
-python main.py cloner --help
 ```
 
 run
@@ -61,18 +59,12 @@ pip install fastapi_ccli-0.0.1-py3-none-any.whl
 help
 
 ```shell
-# 进入 fastapi_ccli 目录下
-
 fastapi_ccli --help
-# or
-fastapi_ccli cloner --help
 ```
 
 run
 
 ```shell
-# 进入 fastapi_ccli 目录下
-
 fastapi_ccli
 ```
 
