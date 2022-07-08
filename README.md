@@ -17,7 +17,7 @@ git clone https://gitee.com/wu_cl/fastapi_ccli
 install dep
 
 ```shell
-portry install
+poetry install
 ```
 
 help
