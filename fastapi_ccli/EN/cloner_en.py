@@ -4,6 +4,7 @@ import os
 import re
 import time
 from typing import Optional
+from rich import print
 
 import typer
 
@@ -13,7 +14,7 @@ from fastapi_ccli.utils.get_ip import get_net_ip
 from fastapi_ccli.utils.get_path import get_project_path
 from fastapi_ccli.utils.get_src import get_sqlalchemy_app_src
 
-app_en = typer.Typer()
+app_en = typer.Typer(rich_markup_mode="rich")
 
 
 def orm_callback(orm: str) -> str:
@@ -38,14 +39,14 @@ def orm_callback(orm: str) -> str:
 
 def project_path_callback(project_path: str) -> str:
     """
-    custom project path
+    Custom project path...
 
     :param project_path:
     :return:
     """
     if project_path:
         if not isinstance(project_path, str):
-            raise typer.BadParameter("Wrong parameter input, Only strings are allowed'")
+            raise typer.BadParameter("Wrong parameter input, please enter the correct path")
         else:
             use_project_name = project_path
     else:
@@ -59,8 +60,6 @@ def is_dns() -> str:
         for i in progress:
             ip = get_net_ip()
             if ip:
-                # Visual effects
-                time.sleep(0.3)
                 progress.update(5)
                 break
             else:
@@ -108,27 +107,23 @@ def is_casbin() -> str:
     return ending
 
 
-@app_en.command()
-def clone(
+@app_en.command(epilog="Made by :beating_heart: wu-clan")
+def cloner(
         orm: Optional[str] = typer.Option(
             None,
             "--orm",
             "-o",
             callback=orm_callback,
-            help="""
-            Which orm to use, sqlalchemy is used by default, sqlalchemy or tortoise-orm is supported, description, 
-            shorthand can be used, s == sqlalchemy, t == tortoise-orm
-            """
+            help="Select the orm to use, the default is sqlalchemy, support sqlalchemy or tortoise-orm, "
+                 "you can also use the shorthand, s or t."
         ),
         project_path: Optional[str] = typer.Option(
             None,
-            "--project_path",
-            "-pp",
+            "--path",
+            "-p",
             callback=project_path_callback,
-            help="""
-            The cloned project path, using ../fastapi_project by default, supports absolute path or relative path, 
-            for example, Absolute path: D:\\fastapi project, relative path: ../fastapi project
-            """
+            help="Project clone path, the default is ../fastapi_project, supports absolute path or relative path, "
+                 "for example, Absolute path: D:\\fastapi project, relative path: ../fastapi_project."
         ),
 ):
     """
@@ -145,7 +140,7 @@ def clone(
         if 'True' in generic_crud:
             casbin = is_casbin()
         typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        typer.echo('Select orm: ' + orm)
+        print('Select orm: ' + orm)
         typer.echo('Use dns: ' + dns)
         typer.echo('Use async: ' + async_app)
         typer.echo('Use generics crud: ' + generic_crud)
@@ -169,7 +164,7 @@ def clone(
     else:
         dns = is_dns()
         typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        typer.echo('Select orm: ' + orm)
+        print('Select orm: ' + orm)
         typer.echo('Use dns: ' + dns)
         if 'True' in dns:
             src = github_ft_src
@@ -180,7 +175,7 @@ def clone(
 
 def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     """
-    Perform clone
+    Perform clone.
 
     :param src:
     :param path:
@@ -189,17 +184,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'sqlalchemy' in orm:
-            typer.echo(f'Start cloning branch {src.split()[0]} of repository {src.split()[1]} 🚀')
+            print(f'Start cloning branch {src.split()[0]} of repository {src.split()[1]} 🚀')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            typer.echo(f'Start cloning repository {src} 🚀')
+            print(f'Start cloning repository {src} 🚀')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        typer.echo(f'Clone project failed ❌: {e}')
+        print(f'Clone project failed ❌: {e}')
         raise typer.Exit(code=1)
     else:
-        typer.echo('The project was cloned successfully ✅')
+        print('The project was cloned successfully ✅')
         typer.echo(f'Please go to the directory {path_style} to view')
         raise typer.Abort()

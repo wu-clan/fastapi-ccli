@@ -13,26 +13,30 @@ runner = CliRunner()
 
 
 def test_cloner_zh():
-    result = runner.invoke(app, input='n\n y\n n')
+    """ 测试非交互模式中文克隆器 """
+    result = runner.invoke(app, input='y\n n\n n\n')
     typer.Abort()
     assert '分析中' in result.stdout
     assert result.exit_code == 1
 
 
 def test_cloner_zh_ic():
+    """ 测试交互模式中文克隆器 """
     result = runner.invoke(app, input='y\n y\n \n \n')
     assert QuestionaryByTyperCliRunnerError
     assert result.exit_code == 1
 
 
 def test_cloner_en():
-    result = runner.invoke(app, input='n\n n\n n')
+    """ Test the English cloner in non-interactive mode """
+    result = runner.invoke(app, input='n\n n\n n\n')
     typer.Abort()
     assert 'Analyzing' in result.stdout
     assert result.exit_code == 1
 
 
 def test_cloner_en_ic():
-    result = runner.invoke(app, input='y\n n\n \n \n')
+    """ Test the English cloner in interactive mode """
+    result = runner.invoke(app, input='n\n y\n \n \n')
     assert QuestionaryByTyperCliRunnerError
     assert result.exit_code == 1

@@ -10,7 +10,7 @@ repository = "https://github.com/wu-clan/fastapi_ccli"
 
 [tool.poetry.dependencies]
 python = '^3.6'
-typer = { version = "0.5.0", extras = ["all"] }
+typer = { version = "0.6.1", extras = ["all"] }
 requests = "2.25.1"
 questionary = "1.10.0"
 

@@ -4,6 +4,7 @@ import os
 import re
 import time
 from typing import Optional
+from rich import print
 
 import typer
 
@@ -13,7 +14,7 @@ from fastapi_ccli.utils.get_ip import get_net_ip
 from fastapi_ccli.utils.get_path import get_project_path
 from fastapi_ccli.utils.get_src import get_sqlalchemy_app_src
 
-app_zh = typer.Typer()
+app_zh = typer.Typer(rich_markup_mode="rich")
 
 
 def orm_callback(orm: str) -> str:
@@ -44,7 +45,7 @@ def project_path_callback(project_path: str) -> str:
     """
     if project_path:
         if not isinstance(project_path, str):
-            raise typer.BadParameter("输入错误参数，只允许字符串'")
+            raise typer.BadParameter("输入错误参数，请输入正确的路径'")
         else:
             use_project_name = project_path
     else:
@@ -58,8 +59,6 @@ def is_dns() -> str:
         for i in progress:
             ip = get_net_ip()
             if ip:
-                # 视觉效果
-                time.sleep(0.3)
                 progress.update(5)
                 break
             else:
@@ -107,27 +106,22 @@ def is_casbin() -> str:
     return ending
 
 
-@app_zh.command()
-def clone(
+@app_zh.command(epilog="由 :beating_heart: wu-clan 制作")
+def cloner(
         orm: Optional[str] = typer.Option(
             None,
             "--orm",
             "-o",
             callback=orm_callback,
-            help="""
-            使用哪个 orm，默认使用 sqlalchemy，支持 sqlalchemy 或 tortoise-orm，说明，
-            可以使用简写，s == sqlalchemy，t == tortoise-orm
-            """
+            help="选择要使用的 orm，默认为 sqlalchemy，支持 sqlalchemy 或 tortoise-orm，也可以使用简写，s 或 t。"
         ),
         project_path: Optional[str] = typer.Option(
             None,
-            "--project_path",
-            "-pp",
+            "--path",
+            "-p",
             callback=project_path_callback,
-            help="""
-            克隆后的项目路径，默认使用 ../fastapi_project，支持绝对路径或相对路径，举例，
-            绝对路径：D:\\fastapi_project，相对路径：../fastapi_project
-            """
+            help="项目克隆路径，默认为 ../fastapi_project，支持绝对路径或相对路径，举例，"
+                 "绝对路径：D:\\fastapi_project，相对路径：../fastapi_project。"
         ),
 ):
     """
@@ -144,7 +138,7 @@ def clone(
         if 'True' in generic_crud:
             casbin = is_casbin()
         typer.echo('项目名称：' + project_name)
-        typer.echo('选择 ORM：' + orm)
+        print('选择 ORM：' + orm)
         typer.echo('使用 dns：' + dns)
         typer.echo('使用异步：' + async_app)
         typer.echo('使用泛型 crud：' + generic_crud)
@@ -168,7 +162,7 @@ def clone(
     else:
         dns = is_dns()
         typer.echo('项目名称：' + project_name)
-        typer.echo('选择 ORM：' + orm)
+        print('选择 ORM：' + orm)
         typer.echo('使用 dns：' + dns)
         if 'True' in dns:
             src = github_ft_src
@@ -189,17 +183,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'sqlalchemy' in orm:
-            typer.echo(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
+            print(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            typer.echo(f'开始克隆存储库 {src} 🚀')
+            print(f'开始克隆存储库 {src} 🚀')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        typer.echo(f'克隆项目失败 ❌: {e}')
+        print(f'克隆项目失败 ❌: {e}')
         raise typer.Exit(code=1)
     else:
-        typer.echo('项目克隆成功 ✅')
+        print('项目克隆成功 ✅')
         typer.echo(f'请到目录 {path_style} 查看')
         raise typer.Abort()

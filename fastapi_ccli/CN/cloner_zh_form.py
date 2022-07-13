@@ -4,6 +4,7 @@ import os
 import re
 import time
 from typing import Optional
+from rich import print
 
 import questionary
 import typer
@@ -14,7 +15,7 @@ from fastapi_ccli.utils.get_ip import get_net_ip
 from fastapi_ccli.utils.get_path import get_project_path
 from fastapi_ccli.utils.get_src import get_sqlalchemy_app_src
 
-app_zh_form = typer.Typer()
+app_zh_form = typer.Typer(rich_markup_mode="rich")
 
 
 def project_path_callback(project_path: str) -> str:
@@ -26,7 +27,7 @@ def project_path_callback(project_path: str) -> str:
     """
     if project_path:
         if not isinstance(project_path, str):
-            raise typer.BadParameter("输入错误参数，只允许字符串'")
+            raise typer.BadParameter("输入错误参数，请输入正确的路径'")
         else:
             use_project_name = project_path
     else:
@@ -55,8 +56,6 @@ def is_dns(dns: str) -> str:
         for i in progress:
             ip = get_net_ip()
             if ip:
-                # 视觉效果
-                time.sleep(0.3)
                 progress.update(5)
                 break
             else:
@@ -119,17 +118,15 @@ def is_casbin(casbin: str) -> str:
     return ending
 
 
-@app_zh_form.command()
-def clone(
+@app_zh_form.command(epilog="由 :beating_heart: wu-clan 制作")
+def cloner(
         project_path: Optional[str] = typer.Option(
             None,
-            "--project_path",
-            "-pp",
+            "--path",
+            "-p",
             callback=project_path_callback,
-            help="""
-            克隆后的项目路径，默认使用 ../fastapi_project，支持绝对路径或相对路径，举例，
-            绝对路径：D:\\fastapi_project，相对路径：../fastapi_project
-            """
+            help="项目克隆路径，默认为 ../fastapi_project，支持绝对路径或相对路径，举例，"
+                 "绝对路径：D:\\fastapi_project，相对路径：../fastapi_project。"
         ),
 ):
     """
@@ -200,17 +197,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'SQLAlchemy' in orm:
-            typer.echo(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
+            print(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            typer.echo(f'开始克隆存储库 {src} 🚀')
+            print(f'开始克隆存储库 {src} 🚀')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        typer.echo(f'克隆项目失败 ❌: {e}')
+        print(f'克隆项目失败 ❌: {e}')
         raise typer.Exit(code=1)
     else:
-        typer.echo('项目克隆成功 ✅')
+        print('项目克隆成功 ✅')
         typer.echo(f'请到目录 {path_style} 查看')
         raise typer.Abort()

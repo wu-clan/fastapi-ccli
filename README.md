@@ -4,7 +4,7 @@
 
 ## 使用
 
-###### P.S.: 未上传到 PyPI, 两种方式选其一, 按步骤在命令行执行即可
+###### P.S.: 未上传到 PyPi, 两种方式选其一, 按步骤在命令行执行即可
 
 ### 1. 克隆仓库
 
@@ -48,7 +48,7 @@ install whl
 
 [备用2](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/wu-clan/fastapi_ccli/blob/master/dist/fastapi_ccli-0.0.1-py3-none-any.whl)
 
-pip
+pip install
 
 ```shell
 # 在 whl 包存放目录执行:

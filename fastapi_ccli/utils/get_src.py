@@ -26,4 +26,5 @@ def get_sqlalchemy_app_src(*, src: str, async_app: str, generic_crud: str, casbi
     else:
         no_generic = tree[0]
         branch_src = f'{no_generic} {src}'
+
     return branch_src

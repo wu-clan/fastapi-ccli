@@ -4,6 +4,7 @@ import os
 import re
 import time
 from typing import Optional
+from rich import print
 
 import questionary
 import typer
@@ -14,7 +15,7 @@ from fastapi_ccli.utils.get_ip import get_net_ip
 from fastapi_ccli.utils.get_path import get_project_path
 from fastapi_ccli.utils.get_src import get_sqlalchemy_app_src
 
-app_en_form = typer.Typer()
+app_en_form = typer.Typer(rich_markup_mode="rich")
 
 
 def project_path_callback(project_path: str) -> str:
@@ -26,7 +27,7 @@ def project_path_callback(project_path: str) -> str:
     """
     if project_path:
         if not isinstance(project_path, str):
-            raise typer.BadParameter("Bad input parameter, only strings are allowed'")
+            raise typer.BadParameter("Bad input parameter, please enter the correct path")
         else:
             use_project_name = project_path
     else:
@@ -55,8 +56,6 @@ def is_dns(dns: bool) -> str:
         for i in progress:
             ip = get_net_ip()
             if ip:
-                # Visual effects
-                time.sleep(0.3)
                 progress.update(5)
                 break
             else:
@@ -119,17 +118,15 @@ def is_casbin(casbin: bool) -> str:
     return ending
 
 
-@app_en_form.command()
-def clone(
+@app_en_form.command(epilog="Made by :beating_heart: wu-clan")
+def cloner(
         project_path: Optional[str] = typer.Option(
             None,
-            "--project_path",
-            "-pp",
+            "--path",
+            "-p",
             callback=project_path_callback,
-            help="""
-            The cloned project path, using ../fastapi_project by default, supports absolute path or relative path, 
-            for example, Absolute path: D:\\fastapi project, relative path: ../fastapi project
-            """
+            help="Project clone path, the default is ../fastapi_project, supports absolute path or relative path, "
+                 "for example, Absolute path: D:\\fastapi project, relative path: ../fastapi_project."
         ),
 ):
     """
@@ -191,7 +188,7 @@ def clone(
 
 def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     """
-    执行克隆
+    Perform clone.
 
     :param orm:
     :param src:
@@ -201,17 +198,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'SQLAlchemy' in orm:
-            typer.echo(f'Start cloning the {src.split()[0]} branch of the repository {src.split()[1]} 🚀')
+            print(f'Start cloning the {src.split()[0]} branch of the repository {src.split()[1]} 🚀')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            typer.echo(f'Start cloning the repository {src} 🚀')
+            print(f'Start cloning the repository {src} 🚀')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        typer.echo(f'Clone repository failed ❌: {e}')
+        print(f'Clone repository failed ❌: {e}')
         raise typer.Exit(code=1)
     else:
-        typer.echo('The repository was cloned successfully ✅')
+        print('The repository was cloned successfully ✅')
         typer.echo(f'Please go to the directory {path_style} to view')
         raise typer.Abort()
