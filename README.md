@@ -59,13 +59,13 @@ pip install fastapi_ccli-0.0.1-py3-none-any.whl
 help
 
 ```shell
-fastapi_ccli --help
+fastapi-ccli --help
 ```
 
 run
 
 ```shell
-fastapi_ccli
+fastapi-ccli
 ```
 
 ## 测试
