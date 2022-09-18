@@ -59,12 +59,16 @@ pip install fastapi_ccli-0.0.1-py3-none-any.whl
 help
 
 ```shell
+# 任意终端下执行
+
 fastapi-ccli --help
 ```
 
 run
 
 ```shell
+# 任意终端下执行
+
 fastapi-ccli
 ```
 
