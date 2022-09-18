@@ -138,7 +138,7 @@ def cloner(
         if 'True' in generic_crud:
             casbin = is_casbin()
         typer.echo('项目名称：' + project_name)
-        print('选择 ORM：' + orm)
+        typer.echo('选择 ORM：' + orm)
         typer.echo('使用 dns：' + dns)
         typer.echo('使用异步：' + async_app)
         typer.echo('使用泛型 crud：' + generic_crud)
@@ -162,7 +162,7 @@ def cloner(
     else:
         dns = is_dns()
         typer.echo('项目名称：' + project_name)
-        print('选择 ORM：' + orm)
+        typer.echo('选择 ORM：' + orm)
         typer.echo('使用 dns：' + dns)
         if 'True' in dns:
             src = github_ft_src

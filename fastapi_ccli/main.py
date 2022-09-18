@@ -18,7 +18,7 @@ def main():
     select_language = questionary.form(
         language = questionary.select('Please select your language:', choices=['zh-hans', 'en'], default='en')
     ).unsafe_ask()
-    if select_language['language']:
+    if select_language['language'] == 'zh-hans':
         interactive_zh = typer.confirm('是否以交互模式运行?', default=True)
         if interactive_zh:
             app_zh_form()

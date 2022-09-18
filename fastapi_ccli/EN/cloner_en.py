@@ -140,7 +140,7 @@ def cloner(
         if 'True' in generic_crud:
             casbin = is_casbin()
         typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        print('Select orm: ' + orm)
+        typer.echo('Select orm: ' + orm)
         typer.echo('Use dns: ' + dns)
         typer.echo('Use async: ' + async_app)
         typer.echo('Use generics crud: ' + generic_crud)
@@ -164,7 +164,7 @@ def cloner(
     else:
         dns = is_dns()
         typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        print('Select orm: ' + orm)
+        typer.echo('Select orm: ' + orm)
         typer.echo('Use dns: ' + dns)
         if 'True' in dns:
             src = github_ft_src
