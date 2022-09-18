@@ -183,17 +183,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'sqlalchemy' in orm:
-            print(f'开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支 🚀')
+            print(f'⏳ 开始克隆存储库 {src.split()[1]} 的 {src.split()[0]} 分支')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            print(f'开始克隆存储库 {src} 🚀')
+            print(f'⏳ 开始克隆存储库 {src}')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        print(f'克隆项目失败 ❌: {e}')
+        print(f'❌ 克隆项目失败: {e}')
         raise typer.Exit(code=1)
     else:
-        print('项目克隆成功 ✅')
+        print('✅ 项目克隆成功')
         typer.echo(f'请到目录 {path_style} 查看')
         raise typer.Abort()

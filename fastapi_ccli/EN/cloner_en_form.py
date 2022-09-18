@@ -198,17 +198,17 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     try:
         # typer.launch(src)
         if 'SQLAlchemy' in orm:
-            print(f'Start cloning the {src.split()[0]} branch of the repository {src.split()[1]} 🚀')
+            print(f'⏳ Start cloning the {src.split()[0]} branch of the repository {src.split()[1]}')
             out = os.system(f'git clone -b {src} {path}')
         else:
-            print(f'Start cloning the repository {src} 🚀')
+            print(f'⏳ Start cloning the repository {src}')
             out = os.system(f'git clone {src} {path}')
         if out != 0:
             raise RuntimeError(out)
     except Exception as e:
-        print(f'Clone repository failed ❌: {e}')
+        print(f'❌ Clone repository failed: {e}')
         raise typer.Exit(code=1)
     else:
-        print('The repository was cloned successfully ✅')
+        print('✅ The repository was cloned successfully')
         typer.echo(f'Please go to the directory {path_style} to view')
         raise typer.Abort()
