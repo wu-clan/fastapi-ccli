@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import typer
+
+__version__ = '0.0.1'
 
 # bool fonts
 GREEN = typer.style('True', fg='green', bold=True)
