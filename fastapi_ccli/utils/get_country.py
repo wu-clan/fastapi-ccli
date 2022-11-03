@@ -18,7 +18,7 @@ def get_current_country(ip: Union[str, None]) -> str:
             rp = request.get(f'https://ip.useragentinfo.com/json?ip={ip}', proxies=proxy).json()['short_name']
         else:
             rp = request.get(f'https://ip.useragentinfo.com/json?ip=', proxies=proxy).json()['short_name']
-    except Exception:
+    except Exception:  # noqa
         rp = 'Unknown'
 
     return rp

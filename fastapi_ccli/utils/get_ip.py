@@ -19,7 +19,7 @@ def get_net_ip() -> str:
         ip = request.get('https://api.ipify.org/').text.strip()
         if not ip:
             ip = request.get('https://ip.42.pl/raw').text.strip()
-    except Exception:
+    except Exception:  # noqa
         ip = None
 
     return ip

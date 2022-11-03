@@ -1,77 +1,17 @@
 # FastAPI Project Clone CLI
 
-> Ps: 浅用 [Typer](https://typer.tiangolo.com/)
+> 此程序使用 [Typer](https://typer.tiangolo.com/) 创建
 
 ## 使用
 
-###### P.S.: 未上传到 PyPi, 两种方式选其一, 按步骤在命令行执行即可
-
-### 1. 克隆仓库
-
-clone
+pip 安装：
 
 ```shell
-git clone https://gitee.com/wu_cl/fastapi_ccli
+pip install fastapi-ccli
 ```
 
-install dep
+查看使用帮助
 
 ```shell
-poetry install
-```
-
-help
-
-```shell
-# 进入 fastapi_ccli 目录下
-
-python main.py --help
-```
-
-run
-
-```shell
-# 进入 fastapi_ccli 目录下
-
-python main.py
-```
-
----
-
-### 2. 安装 whl 包
-
-install whl
-
-[点击下载](https://gitee.com/wu_cl/fastapi_ccli/raw/master/dist/fastapi_ccli-0.0.1-py3-none-any.whl)
-
-[备用1](https://github.com/wu-clan/fastapi_ccli/blob/master/dist/fastapi_ccli-0.0.1-py3-none-any.whl?raw=true)
-
-[备用2](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/wu-clan/fastapi_ccli/blob/master/dist/fastapi_ccli-0.0.1-py3-none-any.whl)
-
-pip install
-
-```shell
-# 在 whl 包存放目录执行:
-
-pip install fastapi_ccli-0.0.1-py3-none-any.whl
-```
-
-help
-
-```shell
-# 任意终端下执行
-
 fastapi-ccli --help
 ```
-
-run
-
-```shell
-# 任意终端下执行
-
-fastapi-ccli
-```
-
-## 测试
-
-根目录下执行 `pytest`

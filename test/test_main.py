@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import keyboard
-from prompt_toolkit.output.win32 import NoConsoleScreenBufferError as QuestionaryByTyperCliRunnerError
+from prompt_toolkit.output.win32 import NoConsoleScreenBufferError as QuestionaryByTyperCliRunnerError  # noqa
 from typer.testing import CliRunner
 
-from fastapi_ccli.CN.cloner_zh import app_zh
-from fastapi_ccli.CN.cloner_zh_form import app_zh_form
-from fastapi_ccli.EN.cloner_en import app_en
-from fastapi_ccli.EN.cloner_en_form import app_en_form
+from fastapi_ccli.cloner.en.cloner_en import app_en
+from fastapi_ccli.cloner.en.cloner_en_form import app_en_form
+from fastapi_ccli.cloner.zh.cloner_zh import app_zh
+from fastapi_ccli.cloner.zh.cloner_zh_form import app_zh_form
 
 runner = CliRunner()
 

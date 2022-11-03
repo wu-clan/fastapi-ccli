@@ -103,5 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# add
+# idea
 .idea/
+
+poetry.lock
