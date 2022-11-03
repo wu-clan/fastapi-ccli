@@ -4,10 +4,10 @@ import os
 import re
 import time
 from typing import Optional
-from rich import print
 
 import questionary
 import typer
+from rich import print
 
 from fastapi_ccli import GREEN, RED, github_fs_src, gitee_fs_src, github_ft_src, gitee_ft_src
 from fastapi_ccli.utils.get_country import get_current_country
@@ -20,7 +20,7 @@ app_en_form = typer.Typer(rich_markup_mode="rich")
 
 def project_path_callback(project_path: str) -> str:
     """
-    Custom project path
+    Select project path...
 
     :param project_path:
     :return:
@@ -37,7 +37,7 @@ def project_path_callback(project_path: str) -> str:
 
 def orm_style(orm: str) -> str:
     """
-    orm stylization
+    orm stylization...
 
     :param orm:
     :return:
@@ -47,7 +47,7 @@ def orm_style(orm: str) -> str:
 
 def is_dns(dns: bool) -> str:
     """
-    Whether to use dns
+    Whether to use dns...
 
     :param dns:
     :return:
@@ -64,69 +64,60 @@ def is_dns(dns: bool) -> str:
                 continue
         rp = get_current_country(ip)
         if 'CN' in rp:
-            if 'Yes' in dns:
-                ending = GREEN
-            else:
-                ending = RED
+            ending = GREEN if 'Yes' in dns else RED
         else:
-            if 'Yes' in dns:
-                ending = RED
-            else:
-                ending = GREEN
+            ending = RED if 'Yes' in dns else GREEN
         return ending
 
 
 def is_async_app(async_app: bool) -> str:
     """
-    Whether to use async
+    Whether to use async...
 
     :param async_app:
     :return:
     """
-    if 'Yes' in async_app:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if 'Yes' in async_app else RED
     return ending
 
 
 def is_generic_crud(generic_crud: bool) -> str:
     """
-    Whether to use generic crud
+    Whether to use generic crud...
 
     :param generic_crud:
     :return:
     """
-    if 'Yes' in generic_crud:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if 'Yes' in generic_crud else RED
     return ending
 
 
 def is_casbin(casbin: bool) -> str:
     """
-    Whether to use rbac
+    Whether to use rbac...
 
     :param casbin:
     :return:
     """
-    if 'Yes' in casbin:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if 'Yes' in casbin else RED
     return ending
 
 
 @app_en_form.command(epilog="Made by :beating_heart: wu-clan")
 def cloner(
+        _version: Optional[bool] = typer.Option(
+            None,
+            "--version",
+            '-V',
+            help="Print version information and quit"
+        ),
         project_path: Optional[str] = typer.Option(
             None,
             "--path",
             "-p",
             callback=project_path_callback,
-            help="Project clone path, the default is ../fastapi_project, supports absolute path or relative path, "
-                 "for example, Absolute path: D:\\fastapi project, relative path: ../fastapi_project."
+            help="Project clone path, the default is '../fastapi_project', supports absolute path or relative path, "
+                 "E.g., Absolute path: D:\\fastapi_project, relative path: ../fastapi_project."
         ),
 ):
     """
@@ -139,50 +130,49 @@ def cloner(
         orm=questionary.select('Please select the orm you want to use:', choices=['SQLAlchemy', 'Tortoise-ORM'],
                                default='SQLAlchemy'),
         dns=questionary.select('Do you want to use dns?', choices=['Yes', 'No'], default='No'),
-    ).unsafe_ask()
+    ).ask()
+    if len(result_if) == 0:
+        raise typer.Abort
     dns = is_dns(result_if['dns'])
     orm = orm_style(result_if['orm'])
     if 'SQLAlchemy' in orm:
         result = questionary.form(
             async_app=questionary.select('Do you want to use async?', choices=['Yes', 'No']),
             generic_crud=questionary.select('Do you want to use generic crud?', choices=['Yes', 'No']),
-            casbin=questionary.select('Do you want to use rbac?', choices=['Yes', 'No']),
-        ).unsafe_ask()
+        ).ask()
+        if len(result) == 0:
+            raise typer.Abort
         async_app = is_async_app(result['async_app'])
         generic_crud = is_generic_crud(result['generic_crud'])
         casbin = None
         if 'True' in generic_crud:
-            casbin = is_casbin(result['casbin'])
+            rbac = questionary.form(
+                casbin=questionary.select('Do you want to use rbac authentication?', choices=['Yes', 'No'])
+            ).ask()
+            if len(rbac) == 0:
+                raise typer.Abort
+            if rbac['casbin'] == 'Yes':
+                casbin = is_casbin(rbac['casbin'])
         typer.echo('Project name：' + project_name)
         typer.echo('Use orm：' + orm)
         typer.echo('Use dns：' + dns)
         typer.echo('Use async：' + async_app)
-        typer.echo('Use generics crud：' + generic_crud)
+        typer.echo('Use generic crud：' + generic_crud)
         if casbin:
-            typer.echo('Use rbac：' + casbin)
-        if 'True' in dns:
-            src = get_sqlalchemy_app_src(
-                src=github_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
-        else:
-            src = get_sqlalchemy_app_src(
-                src=gitee_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
+            typer.echo('Use rbac authentication：' + casbin)
+        source = github_fs_src if 'True' in dns else gitee_fs_src
+        src = get_sqlalchemy_app_src(
+            src=source,
+            async_app=async_app,
+            generic_crud=generic_crud,
+            casbin=casbin
+        )
         __exec_clone(orm, src, path, path_style)
     else:
         typer.echo('Project name：' + project_name)
         typer.echo('Use orm：' + orm)
         typer.echo('Use dns：' + dns)
-        if 'True' in dns:
-            src = github_ft_src
-        else:
-            src = gitee_ft_src
+        src = github_ft_src if 'True' in dns else gitee_ft_src
         __exec_clone(orm, src, path, path_style)
 
 
@@ -211,4 +201,3 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     else:
         print('✅ The repository was cloned successfully')
         typer.echo(f'Please go to the directory {path_style} to view')
-        raise typer.Abort()

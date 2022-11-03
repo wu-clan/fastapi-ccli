@@ -4,9 +4,9 @@ import os
 import re
 import time
 from typing import Optional
-from rich import print
 
 import typer
+from rich import print
 
 from fastapi_ccli import GREEN, RED, github_fs_src, gitee_fs_src, github_ft_src, gitee_ft_src
 from fastapi_ccli.utils.get_country import get_current_country
@@ -19,7 +19,7 @@ app_en = typer.Typer(rich_markup_mode="rich")
 
 def orm_callback(orm: str) -> str:
     """
-    Which to use orm
+    Select the orm to use...
 
     :param orm:
     :return:
@@ -31,7 +31,8 @@ def orm_callback(orm: str) -> str:
             use_orm = typer.style('tortoise-orm', fg='green', bold=True)
         else:
             raise typer.BadParameter(
-                "Enter unknown parameters, only allowed 'sqlalchemy' / 's' or 'tortoise-orm' / 't'")
+                "Enter unknown parameters, only allowed 'sqlalchemy' / 's' or 'tortoise-orm' / 't'."
+            )
     else:
         use_orm = typer.style('sqlalchemy', fg='green', bold=True)
     return use_orm
@@ -39,7 +40,7 @@ def orm_callback(orm: str) -> str:
 
 def project_path_callback(project_path: str) -> str:
     """
-    Custom project path...
+    Select project path...
 
     :param project_path:
     :return:
@@ -68,62 +69,53 @@ def is_dns() -> str:
                 continue
         rp = get_current_country(ip)
         if 'CN' in rp:
-            if dns:
-                ending = GREEN
-            else:
-                ending = RED
+            ending = GREEN if dns else RED
         else:
-            if dns:
-                ending = RED
-            else:
-                ending = GREEN
+            ending = RED if dns else GREEN
         return ending
 
 
 def is_async_app() -> str:
     async_app = typer.confirm('Do you want to use async?', default=True)
-    if async_app:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if async_app else RED
     return ending
 
 
 def is_generic_crud() -> str:
     generic_crud = typer.confirm('Do you want to use generic crud?', default=True)
-    if generic_crud:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if generic_crud else RED
     return ending
 
 
 def is_casbin() -> str:
     casbin = typer.confirm('Do you want to use rbac?', default=True)
-    if casbin:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if casbin else RED
     return ending
 
 
 @app_en.command(epilog="Made by :beating_heart: wu-clan")
 def cloner(
+        _version: Optional[bool] = typer.Option(
+            None,
+            "--version",
+            '-V',
+            help="Print version information and quit"
+        ),
         orm: Optional[str] = typer.Option(
             None,
             "--orm",
             "-o",
             callback=orm_callback,
-            help="Select the orm to use, the default is sqlalchemy, support sqlalchemy or tortoise-orm, "
-                 "you can also use the shorthand, s or t."
+            help="Select the orm to use, the default is sqlalchemy, support 'sqlalchemy' or 'tortoise-orm', "
+                 "you can also use the shorthand, 's' or 't'."
         ),
         project_path: Optional[str] = typer.Option(
             None,
             "--path",
             "-p",
             callback=project_path_callback,
-            help="Project clone path, the default is ../fastapi_project, supports absolute path or relative path, "
-                 "for example, Absolute path: D:\\fastapi project, relative path: ../fastapi_project."
+            help="Project clone path, the default is '../fastapi_project', supports absolute path or relative path, "
+                 "E.g., Absolute path: D:\\fastapi_project, relative path: ../fastapi_project."
         ),
 ):
     """
@@ -143,33 +135,23 @@ def cloner(
         typer.echo('Select orm: ' + orm)
         typer.echo('Use dns: ' + dns)
         typer.echo('Use async: ' + async_app)
-        typer.echo('Use generics crud: ' + generic_crud)
+        typer.echo('Use generic crud: ' + generic_crud)
         if casbin:
             typer.echo('Use rbac: ' + casbin)
-        if 'True' in dns:
-            src = get_sqlalchemy_app_src(
-                src=github_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
-        else:
-            src = get_sqlalchemy_app_src(
-                src=gitee_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
+        source = github_fs_src if 'True' in dns else gitee_fs_src
+        src = get_sqlalchemy_app_src(
+            src=source,
+            async_app=async_app,
+            generic_crud=generic_crud,
+            casbin=casbin
+        )
         __exec_clone(orm, src, path, path_style)
     else:
         dns = is_dns()
         typer.echo('Project name: ' + typer.style(project_name, fg='blue', bold=True))
-        typer.echo('Select orm: ' + orm)
+        typer.echo('Use orm: ' + orm)
         typer.echo('Use dns: ' + dns)
-        if 'True' in dns:
-            src = github_ft_src
-        else:
-            src = gitee_ft_src
+        src = github_ft_src if 'True' in dns else gitee_ft_src
         __exec_clone(orm, src, path, path_style)
 
 
@@ -182,7 +164,6 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     :return:
     """
     try:
-        # typer.launch(src)
         if 'sqlalchemy' in orm:
             print(f'⏳ Start cloning branch {src.split()[0]} of repository {src.split()[1]}')
             out = os.system(f'git clone -b {src} {path}')
@@ -197,4 +178,3 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     else:
         print('✅ The project was cloned successfully')
         typer.echo(f'Please go to the directory {path_style} to view')
-        raise typer.Abort()

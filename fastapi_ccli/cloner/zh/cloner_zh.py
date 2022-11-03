@@ -4,9 +4,9 @@ import os
 import re
 import time
 from typing import Optional
-from rich import print
 
 import typer
+from rich import print
 
 from fastapi_ccli import GREEN, RED, github_fs_src, gitee_fs_src, github_ft_src, gitee_ft_src
 from fastapi_ccli.utils.get_country import get_current_country
@@ -19,7 +19,7 @@ app_zh = typer.Typer(rich_markup_mode="rich")
 
 def orm_callback(orm: str) -> str:
     """
-    使用哪个 orm
+    选择使用的 ORM.
 
     :param orm:
     :return:
@@ -38,7 +38,7 @@ def orm_callback(orm: str) -> str:
 
 def project_path_callback(project_path: str) -> str:
     """
-    自定义项目路径
+    选择项目路径.
 
     :param project_path:
     :return:
@@ -47,10 +47,10 @@ def project_path_callback(project_path: str) -> str:
         if not isinstance(project_path, str):
             raise typer.BadParameter("输入错误参数，请输入正确的路径'")
         else:
-            use_project_name = project_path
+            use_project_path = project_path
     else:
-        use_project_name = '../fastapi_project'
-    return use_project_name
+        use_project_path = '../fastapi_project'
+    return use_project_path
 
 
 def is_dns() -> str:
@@ -67,47 +67,38 @@ def is_dns() -> str:
                 continue
         rp = get_current_country(ip)
         if 'CN' in rp:
-            if dns:
-                ending = GREEN
-            else:
-                ending = RED
+            ending = GREEN if dns else RED
         else:
-            if dns:
-                ending = RED
-            else:
-                ending = GREEN
+            ending = RED if dns else GREEN
         return ending
 
 
 def is_async_app() -> str:
     async_app = typer.confirm('你想使用异步吗?', default=True)
-    if async_app:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if async_app else RED
     return ending
 
 
 def is_generic_crud() -> str:
     generic_crud = typer.confirm('你想使用泛型 crud 吗?', default=True)
-    if generic_crud:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if generic_crud else RED
     return ending
 
 
 def is_casbin() -> str:
     casbin = typer.confirm('你想使用 rbac 吗?', default=True)
-    if casbin:
-        ending = GREEN
-    else:
-        ending = RED
+    ending = GREEN if casbin else RED
     return ending
 
 
 @app_zh.command(epilog="由 :beating_heart: wu-clan 制作")
 def cloner(
+        _version: Optional[bool] = typer.Option(
+            None,
+            "--version",
+            '-V',
+            help="打印版本信息并退出"
+        ),
         orm: Optional[str] = typer.Option(
             None,
             "--orm",
@@ -120,8 +111,8 @@ def cloner(
             "--path",
             "-p",
             callback=project_path_callback,
-            help="项目克隆路径，默认为 ../fastapi_project，支持绝对路径或相对路径，举例，"
-                 "绝对路径：D:\\fastapi_project，相对路径：../fastapi_project。"
+            help="项目克隆路径，默认为 ../fastapi_project，支持绝对路径或相对路径，"
+                 "例如，绝对路径：D:\\fastapi_project，相对路径：../fastapi_project。"
         ),
 ):
     """
@@ -138,36 +129,26 @@ def cloner(
         if 'True' in generic_crud:
             casbin = is_casbin()
         typer.echo('项目名称：' + project_name)
-        typer.echo('选择 ORM：' + orm)
-        typer.echo('使用 dns：' + dns)
+        typer.echo('使用 ORM：' + orm)
+        typer.echo('使用 DNS：' + dns)
         typer.echo('使用异步：' + async_app)
-        typer.echo('使用泛型 crud：' + generic_crud)
+        typer.echo('使用泛型 CRUD：' + generic_crud)
         if casbin:
-            typer.echo('使用 rbac：' + casbin)
-        if 'True' in dns:
-            src = get_sqlalchemy_app_src(
-                src=github_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
-        else:
-            src = get_sqlalchemy_app_src(
-                src=gitee_fs_src,
-                async_app=async_app,
-                generic_crud=generic_crud,
-                casbin=casbin
-            )
+            typer.echo('使用 RBAC 鉴权：' + casbin)
+        source = github_fs_src if 'True' in dns else gitee_fs_src
+        src = get_sqlalchemy_app_src(
+            src=source,
+            async_app=async_app,
+            generic_crud=generic_crud,
+            casbin=casbin
+        )
         __exec_clone(orm, src, path, path_style)
     else:
         dns = is_dns()
         typer.echo('项目名称：' + project_name)
-        typer.echo('选择 ORM：' + orm)
-        typer.echo('使用 dns：' + dns)
-        if 'True' in dns:
-            src = github_ft_src
-        else:
-            src = gitee_ft_src
+        typer.echo('使用 ORM：' + orm)
+        typer.echo('使用 DNS：' + dns)
+        src = github_ft_src if 'True' in dns else gitee_ft_src
         __exec_clone(orm, src, path, path_style)
 
 
@@ -196,4 +177,3 @@ def __exec_clone(orm: str, src: str, path: str, path_style: str) -> None:
     else:
         print('✅ 项目克隆成功')
         typer.echo(f'请到目录 {path_style} 查看')
-        raise typer.Abort()
