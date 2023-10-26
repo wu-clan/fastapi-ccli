@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import re
+from pathlib import Path
 from typing import Optional
 
 import questionary
@@ -36,7 +37,7 @@ def cloner(
     if version:
         typer.secho("\n🔥 FastAPI CCLI " + __version__, fg="green", bold=True)
     if project_path:
-        if not isinstance(project_path, str):
+        if not Path(project_path).is_dir():
             raise typer.BadParameter("Wrong parameter input, please enter the correct path")
         use_project_name = project_path or "../fastapi_project"
         path = get_project_path(use_project_name)

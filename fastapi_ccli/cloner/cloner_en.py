@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import re
 import time
+from pathlib import Path
 from typing import Optional
 
 import typer
@@ -61,10 +63,9 @@ def exec_clone(orm: str, country: str, project: str, path: str) -> None:
         source = github_fsm_src
     try:
         print(f"⏳ Start clone {source.split('/')[-1].split('.')[0]} project...")  # noqa
-        # out = os.system(f"git clone {source} {path}")
-        # if out != 0:
-        #     raise RuntimeError(out)
-        print(orm, country, project, path)
+        out = os.system(f"git clone {source} {path}")
+        if out != 0:
+            raise RuntimeError(out)
     except Exception as e:
         print(f"❌ Clone project failed: {e}")
         raise typer.Exit(1)
@@ -106,7 +107,7 @@ def cloner(
         if orm not in ["sqlalchemy", "tortoise", "sqlmodel"]:
             raise typer.BadParameter("Enter unknown parameters, only allowed 'sqlalchemy' / 'tortoise' / 'sqlmodel'")
     if project_path:
-        if not isinstance(project_path, str):
+        if not Path(project_path).is_dir():
             raise typer.BadParameter("Wrong parameter input, please enter the correct path")
         use_project_name = project_path or "../fastapi_project"
         path = get_project_path(use_project_name)
