@@ -23,7 +23,7 @@ classifiers = [
 requires-python = ">=3.7,<4.0"
 dependencies = [
     "typer[all]==0.9.0",
-    "requests==2.25.1",
+    "requests>=2.31.0",
     "questionary==1.10.0",
 ]
 
@@ -34,7 +34,6 @@ repository = "https://github.com/wu-clan/fastapi_ccli"
 [tool.pdm.dev-dependencies]
 test = [
     "pytest<8.0,>=7.0",
-    "keyboard>=0.13.5",
 ]
 lint = [
     "pre-commit>=2.21.0",
