@@ -5,7 +5,7 @@ import os
 
 def get_project_path(project_path: str) -> str:
     """
-    Parse the project storage path and return.
+    Parse the project storage path and return the absolute path
 
     :return:
     """

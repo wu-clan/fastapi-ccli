@@ -106,4 +106,9 @@ venv.bak/
 # idea
 .idea/
 
-poetry.lock
+# pdm
+.pdm-python
+.pdm-build
+
+# ruff
+.ruff_cache
