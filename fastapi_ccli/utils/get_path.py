@@ -9,7 +9,7 @@ def get_project_path(project_path: str) -> str:
 
     :return:
     """
-    path_resolve = project_path if not project_path.startswith("..") else os.path.abspath(project_path)
-    path = path_resolve if not path_resolve.startswith(".") else os.path.abspath(project_path)
+    path_resolve = project_path if not project_path.startswith('..') else os.path.abspath(project_path)
+    path = path_resolve if not path_resolve.startswith('.') else os.path.abspath(project_path)
 
     return path
