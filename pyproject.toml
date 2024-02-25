@@ -1,7 +1,9 @@
 [project]
-name = "fastapi_ccli"
-version = "0.0.2"
+name = "fastapi-ccli"
 description = "Tool to automatically clone existing fastapi repositories based on command line conditions"
+dynamic = [
+    "version",
+]
 authors = [
     { name = "Wu Clan", email = "jianhengwu0407@gmail.com" },
 ]
@@ -30,6 +32,9 @@ dependencies = [
 [project.urls]
 homepage = "https://github.com/wu-clan/fastapi_ccli"
 repository = "https://github.com/wu-clan/fastapi_ccli"
+
+[tool.pdm]
+version = { source = "file", path = "fastapi_ccli/__init__.py" }
 
 [tool.pdm.dev-dependencies]
 test = [
