@@ -32,6 +32,6 @@ shellingham==1.5.4
 tomli==2.0.1
 typer==0.9.0
 typing-extensions==4.7.1
-urllib3==1.26.18
+urllib3==1.26.19
 virtualenv==20.24.6
 wcwidth==0.2.8
